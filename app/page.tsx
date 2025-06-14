@@ -1,8 +1,7 @@
 // pages/index.tsx
 'use client';
 
-import { listTools} from "../data";
-import {} from "../data";
+import { listTools } from "../data";
 import { useState, useEffect } from "react";
 import Lanyard from "./components/Lanyard/Lanyard";
 import RotatingText from "./components/RotatingText/RotatingText";
@@ -37,72 +36,23 @@ export default function Home() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Add CSS for smooth scrolling
-  useEffect(() => {
-    // Add smooth scroll behavior to html element
-    document.documentElement.style.scrollBehavior = 'smooth';
-    
-    return () => {
-      document.documentElement.style.scrollBehavior = 'auto';
-    };
-  }, []);
+  // No longer need a separate useEffect for scroll-behavior due to direct use in scrollToSection
 
   // Calculate particle settings based on window size
   const isMobile = windowSize.width < 768;
   const particleCount = isMobile ? 200 : 400;
   const particleBaseSize = isMobile ? 100 : 150;
 
-  // Enhanced smooth scroll function with fallback
+  // Refined smooth scroll function
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
       // Get navbar height for offset
       const navbar = document.querySelector('nav');
-      const navbarHeight = navbar?.offsetHeight || 80;
-      
-      // Method 1: Try native smooth scroll first
-      if ('scrollBehavior' in document.documentElement.style) {
-        element.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-      } else {
-        // Method 2: Fallback with manual smooth scroll
-        const targetPosition = element.offsetTop - navbarHeight;
-        const startPosition = window.pageYOffset;
-        const distance = targetPosition - startPosition;
-        const duration = 1000; // 1 second
-        let start: number | null = null;
+      const navbarHeight = navbar?.offsetHeight || 80; // Default to 80 if navbar not found or no height
 
-        const step = (timestamp: number) => {
-          if (!start) start = timestamp;
-          const progress = timestamp - start;
-          const percentage = Math.min(progress / duration, 1);
-          
-          // Easing function for smooth animation
-          const easeInOutCubic = (t: number) => 
-            t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-          
-          window.scrollTo(0, startPosition + distance * easeInOutCubic(percentage));
-          
-          if (progress < duration) {
-            window.requestAnimationFrame(step);
-          }
-        };
-        
-        window.requestAnimationFrame(step);
-      }
-    }
-  };
-
-  // Alternative scroll function using scrollTo with behavior
-  const scrollToSectionAlternative = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const navbar = document.querySelector('nav');
-      const navbarHeight = navbar?.offsetHeight || 80;
       const targetPosition = element.offsetTop - navbarHeight;
-      
+
       window.scrollTo({
         top: targetPosition,
         behavior: 'smooth'
@@ -112,29 +62,25 @@ export default function Home() {
 
   return (
     <div className={`${darkMode ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-900'} min-h-screen overflow-x-hidden transition-colors duration-500`}>
-      {/* Add global styles for smooth scrolling */}
-      <style jsx global>{`
+      {/* Remove global style for scroll-behavior here, it's handled directly in scrollToSection */}
+      {/* <style jsx global>{`
         html {
           scroll-behavior: smooth;
         }
-        
-        /* Ensure smooth scrolling works on all browsers */
         * {
           scroll-behavior: smooth;
         }
-        
-        /* Fix for webkit browsers */
         @supports (scroll-behavior: smooth) {
           html {
             scroll-behavior: smooth;
           }
         }
-      `}</style>
+      `}</style> */}
 
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        darkMode 
-          ? 'bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800' 
+        darkMode
+          ? 'bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800'
           : 'bg-white/90 backdrop-blur-md border-b border-gray-200'
       }`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -153,33 +99,33 @@ export default function Home() {
 
             {/* Navigation Menu */}
             <div className="hidden md:flex items-center space-x-8">
-              <button 
+              <button
                 onClick={() => scrollToSection('home')}
                 className="text-sm lg:text-base font-medium hover:text-violet-600 transition-colors duration-300"
               >
                 Home
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('projects')}
                 className="text-sm lg:text-base font-medium hover:text-violet-600 transition-colors duration-300"
               >
                 Projects
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('skills')}
                 className="text-sm lg:text-base font-medium hover:text-violet-600 transition-colors duration-300"
               >
                 Skills
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('contact')}
                 className="text-sm lg:text-base font-medium hover:text-violet-600 transition-colors duration-300"
               >
                 Contact
               </button>
-              
+
               {/* Dark Mode Toggle */}
-              <button 
+              <button
                 onClick={() => setDarkMode(!darkMode)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 ${
                   darkMode ? 'bg-violet-600' : 'bg-gray-300'
@@ -196,7 +142,7 @@ export default function Home() {
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-4">
-              <button 
+              <button
                 onClick={() => setDarkMode(!darkMode)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 ${
                   darkMode ? 'bg-violet-600' : 'bg-gray-300'
@@ -217,29 +163,29 @@ export default function Home() {
       {/* Mobile Navigation Menu */}
       <div className="md:hidden fixed bottom-4 left-4 right-4 z-50">
         <div className={`flex justify-center items-center space-x-6 px-6 py-3 rounded-2xl shadow-lg ${
-          darkMode 
-            ? 'bg-zinc-800/90 backdrop-blur-md border border-zinc-700' 
+          darkMode
+            ? 'bg-zinc-800/90 backdrop-blur-md border border-zinc-700'
             : 'bg-white/90 backdrop-blur-md border border-gray-200'
         }`}>
-          <button 
+          <button
             onClick={() => scrollToSection('home')}
             className="text-xs font-medium hover:text-violet-600 transition-colors duration-300 text-center"
           >
             Home
           </button>
-          <button 
+          <button
             onClick={() => scrollToSection('projects')}
             className="text-xs font-medium hover:text-violet-600 transition-colors duration-300 text-center"
           >
             Projects
           </button>
-          <button 
+          <button
             onClick={() => scrollToSection('skills')}
             className="text-xs font-medium hover:text-violet-600 transition-colors duration-300 text-center"
           >
             Skills
           </button>
-          <button 
+          <button
             onClick={() => scrollToSection('contact')}
             className="text-xs font-medium hover:text-violet-600 transition-colors duration-300 text-center"
           >
@@ -251,7 +197,7 @@ export default function Home() {
       {/* Particles Background */}
       {windowSize.width > 0 && (
         <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
-          <Particles 
+          <Particles
             particleColors={['#b7d520', '#b7d520']}
             particleCount={particleCount}
             particleSpread={10}
@@ -275,7 +221,7 @@ export default function Home() {
                   I'm interested in
                 </h2>
                 <div className="w-full lg:w-auto">
-                  <RotatingText 
+                  <RotatingText
                     texts={['Web Development', 'Quality Assurance', 'Mobile Development', 'Machine Learning']}
                     mainClassName="px-3 lg:px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg text-lg lg:text-xl xl:text-2xl font-bold inline-flex transition-all w-full lg:w-auto justify-center lg:justify-start"
                     staggerFrom="last"
@@ -292,14 +238,14 @@ export default function Home() {
 
               {/* Main Title */}
               <div className="space-y-4">
-                <SplitText 
+                <SplitText
                   text="Hello, I'm Putra Palampang Tarung!"
                   className="text-2xl lg:text-3xl xl:text-4xl 2xl:text-4xl font-bold leading-tight"
                   delay={50} duration={0.6} ease="power3.out"
                   splitType="chars" from={{ opacity: 0, y: 40 }}
                   to={{ opacity: 1, y: 0 }} threshold={0.1} rootMargin="-100px"
                 />
-                <SplitText 
+                <SplitText
                   text="Web Programming Enthusiast"
                   className="text-xl lg:text-2xl xl:text-3xl 2xl:text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text leading-tight"
                   delay={150} duration={0.6} ease="power3.out"
@@ -309,25 +255,25 @@ export default function Home() {
               </div>
 
               {/* Description */}
-              <BlurText 
+              <BlurText
                 text="Saya adalah mahasiswa Informatika semester 6 yang memiliki ketertarikan dalam Web & Mobile Development, Quality Assurance, dan Machine Learning. Website ini menampilkan perjalanan saya dalam teknologi serta berbagai proyek yang saya kembangkan."
-                delay={70} animateBy="words" direction="top" 
+                delay={70} animateBy="words" direction="top"
                 className="text-base lg:text-lg xl:text-xl leading-relaxed max-w-2xl opacity-80"
               />
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <button 
+                <button
                   onClick={() => scrollToSection('projects')}
                   className="px-8 py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg hover:from-violet-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
                   View My Work
                 </button>
-                <button 
+                <button
                   onClick={() => scrollToSection('contact')}
                   className={`px-8 py-4 border-2 font-semibold rounded-lg transition-all duration-300 ${
-                    darkMode 
-                      ? 'border-violet-600 text-violet-400 hover:bg-violet-600 hover:text-white' 
+                    darkMode
+                      ? 'border-violet-600 text-violet-400 hover:bg-violet-600 hover:text-white'
                       : 'border-violet-600 text-violet-600 hover:bg-violet-600 hover:text-white'
                   }`}
                 >
@@ -359,9 +305,9 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-            {[1,2,3].map((p, index) => (
-              <div 
-                key={p} 
+            {[1, 2, 3].map((p, index) => (
+              <div
+                key={p}
                 className={`group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 ${
                   darkMode ? 'bg-zinc-800 border border-zinc-700' : 'bg-white border border-gray-200'
                 }`}
@@ -371,8 +317,8 @@ export default function Home() {
               >
                 <div className={`h-48 lg:h-56 rounded-t-2xl mb-6 bg-gradient-to-br ${
                   index === 0 ? 'from-violet-400 to-purple-600' :
-                  index === 1 ? 'from-blue-400 to-cyan-600' :
-                  'from-green-400 to-emerald-600'
+                    index === 1 ? 'from-blue-400 to-cyan-600' :
+                      'from-green-400 to-emerald-600'
                 } relative overflow-hidden`}>
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300"></div>
                   <div className="absolute bottom-4 left-4 right-4">
@@ -383,7 +329,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-6">
                   <h3 className="text-xl lg:text-2xl font-bold mb-3 group-hover:text-violet-600 transition-colors duration-300">
                     Project {p}
@@ -393,7 +339,7 @@ export default function Home() {
                   </p>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {['React', 'Node.js', 'MongoDB'].map((tech, i) => (
-                      <span 
+                      <span
                         key={i}
                         className="px-3 py-1 text-xs font-medium bg-violet-100 text-violet-800 rounded-full"
                       >
@@ -432,11 +378,11 @@ export default function Home() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
             {listTools.map((tool, index) => (
-              <div 
+              <div
                 key={tool.id}
                 className={`group flex flex-col items-center p-4 lg:p-6 rounded-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-xl ${
-                  darkMode 
-                    ? 'bg-zinc-800 border border-zinc-700 hover:border-violet-500' 
+                  darkMode
+                    ? 'bg-zinc-800 border border-zinc-700 hover:border-violet-500'
                     : 'bg-white border border-gray-200 hover:border-violet-400'
                 }`}
                 style={{
@@ -444,11 +390,11 @@ export default function Home() {
                 }}
               >
                 <div className="w-12 h-12 lg:w-16 lg:h-16 mb-4 relative group-hover:scale-110 transition-transform duration-300">
-                  <img 
-                    src={tool.gambar} 
-                    alt={`${tool.nama} logo`} 
-                    className="w-full h-full object-contain" 
-                    loading="lazy" 
+                  <img
+                    src={tool.gambar}
+                    alt={`${tool.nama} logo`}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
                   />
                 </div>
                 <h4 className="font-bold text-sm lg:text-base text-center mb-1 group-hover:text-violet-600 transition-colors duration-300">
@@ -519,59 +465,59 @@ export default function Home() {
               }`}>
                 <form className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input 
-                      type="text" 
-                      placeholder="First Name" 
+                    <input
+                      type="text"
+                      placeholder="First Name"
                       className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                        darkMode 
-                          ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400' 
+                        darkMode
+                          ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400'
                           : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                       }`}
                       required
                     />
-                    <input 
-                      type="text" 
-                      placeholder="Last Name" 
+                    <input
+                      type="text"
+                      placeholder="Last Name"
                       className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                        darkMode 
-                          ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400' 
+                        darkMode
+                          ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400'
                           : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                       }`}
                       required
                     />
                   </div>
-                  <input 
-                    type="email" 
-                    placeholder="Email Address" 
+                  <input
+                    type="email"
+                    placeholder="Email Address"
                     className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                      darkMode 
-                        ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400' 
+                      darkMode
+                        ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400'
                         : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                     }`}
                     required
                   />
-                  <input 
-                    type="text" 
-                    placeholder="Subject" 
+                  <input
+                    type="text"
+                    placeholder="Subject"
                     className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                      darkMode 
-                        ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400' 
+                      darkMode
+                        ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400'
                         : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                     }`}
                     required
                   />
-                  <textarea 
-                    placeholder="Your Message" 
-                    rows={6} 
+                  <textarea
+                    placeholder="Your Message"
+                    rows={6}
                     className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 resize-vertical ${
-                      darkMode 
-                        ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400' 
+                      darkMode
+                        ? 'bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400'
                         : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                     }`}
                     required
                   ></textarea>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="w-full px-8 py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg hover:from-violet-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                   >
                     Send Message
