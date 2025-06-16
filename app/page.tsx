@@ -2,6 +2,7 @@
 'use client';
 
 import { listTools } from "../data";
+import { listProjects } from "../data";
 import { useState, useEffect } from "react";
 import Lanyard from "./components/Lanyard/Lanyard";
 import RotatingText from "./components/RotatingText/RotatingText";
@@ -17,7 +18,11 @@ export default function Home() {
     height: 0,
   });
 
-  // Handle window resize and initial size
+  // State untuk status formulir
+  const [formStatus, setFormStatus] = useState({ message: '', type: '' as 'success' | 'error' | 'info' | '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle window resize dan initial size
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
@@ -35,8 +40,6 @@ export default function Home() {
     // Cleanup
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // No longer need a separate useEffect for scroll-behavior due to direct use in scrollToSection
 
   // Calculate particle settings based on window size
   const isMobile = windowSize.width < 768;
@@ -60,23 +63,91 @@ export default function Home() {
     }
   };
 
+  // Fungsi untuk menangani submit formulir
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setFormStatus({ message: 'Mengirim pesan...', type: 'info' });
+
+    const formData = new FormData(event.currentTarget);
+    const data = {
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      email: formData.get('email'),
+      subject: formData.get('subject'),
+      message: formData.get('message'),
+    };
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      console.log('Frontend: Response status:', response.status);
+      console.log('Frontend: Response OK:', response.ok);
+
+      const responseText = await response.text();
+      console.log('Frontend: Raw response text:', responseText);
+
+      let result;
+      try {
+        if (responseText) {
+          result = JSON.parse(responseText);
+        } else {
+          if (response.ok) {
+              setFormStatus({ message: 'Pesan berhasil dikirim!', type: 'success' });
+              // --- PERBAIKAN DI SINI ---
+              if (event.currentTarget && typeof event.currentTarget.reset === 'function') {
+                  event.currentTarget.reset(); // Hanya panggil reset jika ada
+              }
+              // --- AKHIR PERBAIKAN ---
+          } else {
+              setFormStatus({ message: 'Terjadi kesalahan pada server (respons kosong).', type: 'error' });
+          }
+          setIsSubmitting(false);
+          return;
+        }
+      } catch (parseError) {
+        console.error('Frontend: Gagal parsing JSON respons:', parseError);
+        if (response.ok) {
+            setFormStatus({ message: 'Pesan berhasil dikirim! (Respons server tidak valid)', type: 'success' });
+            // --- PERBAIKAN DI SINI ---
+            if (event.currentTarget && typeof event.currentTarget.reset === 'function') {
+                event.currentTarget.reset(); // Hanya panggil reset jika ada
+            }
+            // --- AKHIR PERBAIKAN ---
+        } else {
+            setFormStatus({ message: 'Terjadi kesalahan pada server (respons tidak dapat dibaca).', type: 'error' });
+        }
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (response.ok) {
+        setFormStatus({ message: result?.message || 'Pesan berhasil dikirim!', type: 'success' });
+        // --- PERBAIKAN DI SINI ---
+        if (event.currentTarget && typeof event.currentTarget.reset === 'function') {
+            event.currentTarget.reset(); // Hanya panggil reset jika ada
+        }
+        // --- AKHIR PERBAIKAN ---
+      } else {
+        setFormStatus({ message: result?.message || 'Terjadi kesalahan saat mengirim pesan.', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Frontend: Error jaringan atau server:', error);
+      setFormStatus({ message: 'Terjadi kesalahan jaringan atau server. Pastikan koneksi Anda.', type: 'error' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
   return (
     <div className={`${darkMode ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-900'} min-h-screen overflow-x-hidden transition-colors duration-500`}>
-      {/* Remove global style for scroll-behavior here, it's handled directly in scrollToSection */}
-      {/* <style jsx global>{`
-        html {
-          scroll-behavior: smooth;
-        }
-        * {
-          scroll-behavior: smooth;
-        }
-        @supports (scroll-behavior: smooth) {
-          html {
-            scroll-behavior: smooth;
-          }
-        }
-      `}</style> */}
-
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         darkMode
@@ -211,9 +282,9 @@ export default function Home() {
       )}
 
       {/* Hero Section */}
-      <section id="home" className="min-h-screen pt-16 lg:pt-20">
+      <section id="home" className="min-h-screen pt-[80px] lg:pt-[80px] relative z-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-screen">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center h-full">
             <div className="flex flex-col justify-center space-y-6 lg:space-y-8 relative z-10">
               {/* Interest Section */}
               <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-4">
@@ -246,7 +317,7 @@ export default function Home() {
                   to={{ opacity: 1, y: 0 }} threshold={0.1} rootMargin="-100px"
                 />
                 <SplitText
-                  text="Web Programming Enthusiast"
+                  text="Tech Enthusiast"
                   className="text-xl lg:text-2xl xl:text-3xl 2xl:text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text leading-tight"
                   delay={150} duration={0.6} ease="power3.out"
                   splitType="chars" from={{ opacity: 0, y: 40 }}
@@ -256,7 +327,7 @@ export default function Home() {
 
               {/* Description */}
               <BlurText
-                text="Saya adalah mahasiswa Informatika semester 6 yang memiliki ketertarikan dalam Web & Mobile Development, Quality Assurance, dan Machine Learning. Website ini menampilkan perjalanan saya dalam teknologi serta berbagai proyek yang saya kembangkan."
+                text="Saya adalah Mahasiswa Informatika semester 6 dengan minat kuat di pengembangan Web & Mobile, Quality Assurance, dan Machine Learning. Saya bersemangat untuk mengaplikasikan dan mengembangkan keahlian teknis saya dalam proyek-proyek yang berdampak, seperti yang saya demonstrasikan dalam portofolio ini."
                 delay={70} animateBy="words" direction="top"
                 className="text-base lg:text-lg xl:text-xl leading-relaxed max-w-2xl opacity-80"
               />
@@ -305,9 +376,9 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-            {[1, 2, 3].map((p, index) => (
+            {listProjects.map((project, index) => (
               <div
-                key={p}
+                key={project.id}
                 className={`group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 ${
                   darkMode ? 'bg-zinc-800 border border-zinc-700' : 'bg-white border border-gray-200'
                 }`}
@@ -315,30 +386,31 @@ export default function Home() {
                   animationDelay: `${index * 0.2}s`
                 }}
               >
-                <div className={`h-48 lg:h-56 rounded-t-2xl mb-6 bg-gradient-to-br ${
-                  index === 0 ? 'from-violet-400 to-purple-600' :
-                    index === 1 ? 'from-blue-400 to-cyan-600' :
-                      'from-green-400 to-emerald-600'
-                } relative overflow-hidden`}>
+                <div className={`h-70 lg:h-82 rounded-t-2xl mb-6 relative overflow-hidden`}>
+                  <img
+                    src={project.imageUrl}
+                    alt={`Project ${project.title} mockup`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300"></div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <div className="flex items-center space-x-2">
+                      {/* Anda bisa menambahkan indikator atau ikon di sini jika diperlukan */}
                       <div className="w-3 h-3 bg-white/80 rounded-full"></div>
-                      <div className="w-3 h-3 bg-white/60 rounded-full"></div>
-                      <div className="w-3 h-3 bg-white/40 rounded-full"></div>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-6">
                   <h3 className="text-xl lg:text-2xl font-bold mb-3 group-hover:text-violet-600 transition-colors duration-300">
-                    Project {p}
+                    {project.title}
                   </h3>
                   <p className="opacity-80 text-sm lg:text-base leading-relaxed mb-4">
-                    Deskripsi singkat proyek yang menjelaskan fungsi utama dan teknologi yang digunakan dalam pengembangan aplikasi ini.
+                    {project.description}
                   </p>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {['React', 'Node.js', 'MongoDB'].map((tech, i) => (
+                    {project.technologies.map((tech, i) => (
                       <span
                         key={i}
                         className="px-3 py-1 text-xs font-medium bg-violet-100 text-violet-800 rounded-full"
@@ -348,12 +420,12 @@ export default function Home() {
                     ))}
                   </div>
                   <div className="flex space-x-4">
-                    <button className="text-sm font-semibold text-violet-600 hover:text-violet-700 transition-colors duration-300">
+                    <a href={project.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-violet-600 hover:text-violet-700 transition-colors duration-300">
                       Live Demo →
-                    </button>
-                    <button className="text-sm font-semibold text-violet-600 hover:text-violet-700 transition-colors duration-300">
+                    </a>
+                    <a href={project.sourceCodeUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-violet-600 hover:text-violet-700 transition-colors duration-300">
                       Source Code →
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -463,10 +535,11 @@ export default function Home() {
               <div className={`p-8 rounded-2xl shadow-lg ${
                 darkMode ? 'bg-zinc-800 border border-zinc-700' : 'bg-white border border-gray-200'
               }`}>
-                <form className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6"> {/* Tambahkan onSubmit handler di sini */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <input
                       type="text"
+                      name="firstName" // Penting: Tambahkan atribut 'name'
                       placeholder="First Name"
                       className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
                         darkMode
@@ -477,6 +550,7 @@ export default function Home() {
                     />
                     <input
                       type="text"
+                      name="lastName" // Penting: Tambahkan atribut 'name'
                       placeholder="Last Name"
                       className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
                         darkMode
@@ -488,6 +562,7 @@ export default function Home() {
                   </div>
                   <input
                     type="email"
+                    name="email" // Penting: Tambahkan atribut 'name'
                     placeholder="Email Address"
                     className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
                       darkMode
@@ -498,6 +573,7 @@ export default function Home() {
                   />
                   <input
                     type="text"
+                    name="subject" // Penting: Tambahkan atribut 'name'
                     placeholder="Subject"
                     className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
                       darkMode
@@ -507,6 +583,7 @@ export default function Home() {
                     required
                   />
                   <textarea
+                    name="message" // Penting: Tambahkan atribut 'name'
                     placeholder="Your Message"
                     rows={6}
                     className={`w-full p-4 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 resize-vertical ${
@@ -518,10 +595,24 @@ export default function Home() {
                   ></textarea>
                   <button
                     type="submit"
-                    className="w-full px-8 py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg hover:from-violet-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                    disabled={isSubmitting} // Nonaktifkan tombol saat mengirim
+                    className={`w-full px-8 py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 ${
+                      isSubmitting
+                        ? 'opacity-70 cursor-not-allowed'
+                        : 'hover:from-violet-700 hover:to-purple-700 hover:shadow-xl transform hover:-translate-y-1'
+                    }`}
                   >
-                    Send Message
+                    {isSubmitting ? 'Mengirim...' : 'Send Message'}
                   </button>
+                  {formStatus.message && (
+                    <p className={`mt-4 text-center ${
+                      formStatus.type === 'success' ? 'text-green-500' :
+                      formStatus.type === 'error' ? 'text-red-500' :
+                      'text-blue-500'
+                    }`}>
+                      {formStatus.message}
+                    </p>
+                  )}
                 </form>
               </div>
             </div>
