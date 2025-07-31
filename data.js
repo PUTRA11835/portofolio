@@ -117,4 +117,14 @@ export const listProjects = [
     liveDemoUrl: "-",
     sourceCodeUrl: "https://github.com/PUTRA11835/portofolio.git",
   },
+  {
+    id: 4,
+    title: "Website Profil Padukuhan",
+    description:
+      "Proyek ini dirancang dengan fokus pada desain yang user-friendly, navigasi yang intuitif, dan pengelolaan konten yang efisien menggunakan Laravel sebagai backend dan Vite untuk build tools frontend, memastikan website cepat dan modern. Website ini menjadi sarana digital untuk mempromosikan identitas, aktivitas, dan potensi Padukuhan Watubelah kepada masyarakat luas.",
+    technologies: ["Laravel", "Vite", "MySQL"],
+    imageUrl: "/assets/projects/Poster Watubelah.png",
+    liveDemoUrl: "https://watubelah.com/",
+    sourceCodeUrl: "-",
+  },
 ];
