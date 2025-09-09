@@ -643,7 +643,7 @@ export default function Home() {
               <a href="https://www.linkedin.com/in/putrapalampangtarung/" className="text-sm opacity-60 hover:opacity-100 hover:text-violet-600 transition-all duration-300">
                 LinkedIn
               </a>
-              <a href="https://github.com/putrapalampangtarung" className="text-sm opacity-60 hover:opacity-100 hover:text-violet-600 transition-all duration-300">
+              <a href="https://github.com/PUTRA11835" className="text-sm opacity-60 hover:opacity-100 hover:text-violet-600 transition-all duration-300">
                 GitHub
               </a>
               <a href="https://www.instagram.com/putrapalampang_" className="text-sm opacity-60 hover:opacity-100 hover:text-violet-600 transition-all duration-300">
